@@ -1,5 +1,5 @@
 const apiUrl = "https://playwithme.pw/player_api.php";
-const proxyUrl = "https://wickedtv-proxy.onrender.com";
+const proxyUrl = "https://wickedtv-full.onrender.com";
 const user = JSON.parse(localStorage.getItem("xtream_user"));
 
 if (!user) {
@@ -59,7 +59,7 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const urlBase = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}`;
+  const urlBase = `https://wickedtv-full.onrender.com/live/${username}/${password}/${id}`;
   video.src = `${urlBase}.m3u8`;
   video.play().catch(() => {
     video.src = `${urlBase}.ts`;
