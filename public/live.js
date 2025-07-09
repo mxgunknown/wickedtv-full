@@ -59,7 +59,7 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const url = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}.m3u8`;
+  const urlBase = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}`;
 
   if (Hls.isSupported()) {
     const hls = new Hls();
