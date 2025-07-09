@@ -59,19 +59,31 @@ function renderChannels(channels) {
 
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
-  const urlBase = `https://wickedtv-full.onrender.com/live/${username}/${password}/${id}`;
-  video.src = `${urlBase}.m3u8`;
-  video.play().catch(() => {
-    video.src = `${urlBase}.ts`;
-    video.play().catch(() => {
+  const url = `https://wickedtv-full.onrender.com/live/${username}/${password}/${id}.m3u8`;
+
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+    });
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      console.error("HLS.js error:", data);
       alert("Stream failed to load.");
     });
-  });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = url;
+    video.addEventListener("loadedmetadata", () => {
+      video.play();
+    });
+  } else {
+    alert("Your browser does not support HLS playback.");
+  }
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
 }
-
 
 async function fetchEPG(id) {
   const res = await fetch(`${apiUrl}?username=${username}&password=${password}&action=get_short_epg&stream_id=${id}`);
