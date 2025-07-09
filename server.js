@@ -8,36 +8,31 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.static("public"));
 
-// Custom headers ONLY for media routes
-const setMediaHeaders = (proxyReq) => {
-  proxyReq.setHeader("Host", "playwithme.pw");
-  proxyReq.setHeader("User-Agent", "Mozilla/5.0");
-  proxyReq.setHeader("Referer", "http://playwithme.pw/");
-};
-
-// Proxy full HLS: m3u8 + ts + encryption keys
+// Proxy full HLS access: .m3u8, .ts, and key segments
 app.use(
   "/hls",
   createProxyMiddleware({
     target: "http://playwithme.pw",
     changeOrigin: true,
-    pathRewrite: { "^/hls": "/hls" },
-    onProxyReq: setMediaHeaders,
+    pathRewrite: {
+      "^/hls": "/hls", // leave as is
+    },
   })
 );
 
-// Legacy direct streams
+// Proxy legacy direct stream paths (for fallback)
 app.use(
   "/live",
   createProxyMiddleware({
     target: "http://playwithme.pw",
     changeOrigin: true,
-    pathRewrite: { "^/live": "/live" },
-    onProxyReq: setMediaHeaders,
+    pathRewrite: {
+      "^/live": "/live",
+    },
   })
 );
 
-// API (do NOT attach headers here!)
+// Proxy API
 app.use(
   "/player_api.php",
   createProxyMiddleware({
@@ -47,5 +42,5 @@ app.use(
 );
 
 app.listen(PORT, () => {
-  console.log(`WickedTV server running on port ${PORT}`);
+  console.log(`WickedTV server is running on port ${PORT}`);
 });
