@@ -60,24 +60,13 @@ function renderChannels(channels) {
 function playStream(id, name) {
   const video = document.getElementById("videoPlayer");
   const urlBase = `https://wickedtv-proxy.onrender.com/live/${username}/${password}/${id}`;
-
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.ERROR, function (_, data) {
-      console.error("HLS.js error:", data);
+  video.src = `${urlBase}.m3u8`;
+  video.play().catch(() => {
+    video.src = `${urlBase}.ts`;
+    video.play().catch(() => {
       alert("Stream failed to load.");
     });
-  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-    video.src = url;
-    video.addEventListener("error", () => {
-      alert("Stream failed to load.");
-    });
-    video.play();
-  } else {
-    alert("Your browser does not support HLS playback.");
-  }
+  });
 
   document.getElementById("epgInfo").innerHTML = `<h3>${name}</h3>`;
   fetchEPG(id);
