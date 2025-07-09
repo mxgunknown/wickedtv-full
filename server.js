@@ -1,46 +1,37 @@
 const express = require("express");
+const request = require("request");
 const cors = require("cors");
-const { createProxyMiddleware } = require("http-proxy-middleware");
-
+const path = require("path");
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public"))); // serve frontend
 
-// Proxy full HLS access: .m3u8, .ts, and key segments
-app.use(
-  "/hls",
-  createProxyMiddleware({
-    target: "http://playwithme.pw",
-    changeOrigin: true,
-    pathRewrite: {
-      "^/hls": "/hls", // leave as is
-    },
-  })
-);
+// Proxy all other requests (login, streams, etc.)
+app.use("/*", (req, res) => {
+  const targetUrl = "http://playwithme.pw" + req.originalUrl;
 
-// Proxy legacy direct stream paths (for fallback)
-app.use(
-  "/live",
-  createProxyMiddleware({
-    target: "http://playwithme.pw",
-    changeOrigin: true,
-    pathRewrite: {
-      "^/live": "/live",
-    },
-  })
-);
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "Referer": "http://playwithme.pw/",
+    "Origin": "http://playwithme.pw",
+    "Host": "playwithme.pw",
+    "Accept": "*/*"
+  };
 
-// Proxy API
-app.use(
-  "/player_api.php",
-  createProxyMiddleware({
-    target: "http://playwithme.pw",
-    changeOrigin: true,
-  })
-);
+  req.pipe(
+    request({
+      url: targetUrl,
+      method: req.method,
+      headers: headers
+    }).on("response", (response) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    })
+  ).pipe(res);
+});
 
-app.listen(PORT, () => {
-  console.log(`WickedTV server is running on port ${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Proxy + frontend running on port ${port}`);
 });
